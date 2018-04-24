@@ -55,10 +55,17 @@ class Markov_chain:
 
     def learn(self, channel):
         
+        i = 0
+        while i+1 < len(channel.notes):
+            if channel.notes[i+1].start - channel.notes[i].start < 0.0001:
+#                print(channel.notes[i+1],end=" removed\n")
+                channel.notes.pop(i+1)
+            i += 1
+        
         self.notes = self.notes.union([note.pitch for note in channel.notes])    #all the notes
         self.durations = self.durations.union([round(note.end-note.start, 4) for note in channel.notes])    #all the durations
 #        print(self.notes, self.durations)
-
+        
         for note in self.notes:     # if this note found for the first time
             if self.next_notes.get(note) == None: 
                 self.next_notes[note] = []
@@ -97,12 +104,19 @@ class Markov_chain:
     
     
         
-    def create(self, instru='Acoustic Grand Piano', length=100, velocity=101, start_note=-1, start_dur=-1):
+    def create_notes(self, length=100, start_note=-1, start_dur=-1, dur_limit=-1, velocity=101):
         #    returns a pretty_midi.PrettyMIDI()
         import random
-        if start_note == -1: start_note = random.choice(list(self.notes))
-        if start_dur == -1: start_dur = random.choice(list(self.durations))
         random.seed()
+        if start_note == -1: 
+            start_note = random.choice(list(self.notes))
+            while(self.note_next_total[start_note] == 0):
+                start_note = random.choice(list(self.notes))
+                
+        if start_dur == -1: 
+            start_dur = random.choice(list(self.durations))
+            while(self.dur_next_total[start_dur] == 0):
+                start_dur = random.choice(list(self.durations))
         note_matrix = matrix(zeros((length, 4)))
         note_matrix[0,:] = matrix([0, start_dur, start_note, velocity])
         for i in range(1, length):
@@ -117,14 +131,16 @@ class Markov_chain:
             population = self.next_durs[prev_dur]
             weights = [self.dur_next[(prev_dur, dur)] for dur in population]
             dur = random.choices(population, weights)[0]
-
+            
             last_end = note_matrix[i-1,1]
             note_matrix[i,:] = matrix([last_end, last_end+dur, note, velocity])
                 
-        creation = pretty_midi.PrettyMIDI()
-        piano_program = pretty_midi.instrument_name_to_program(instru)
-        piano = pretty_midi.Instrument(program=piano_program)
-        piano.notes = matrix2notes(note_matrix)
-        creation.instruments.append(piano)
-        return creation
+        notes = matrix2notes(note_matrix)
+        return notes
 
+if __name__ == "__main__":
+    markov = Markov_chain()
+    midi = pretty_midi.PrettyMIDI("FlowerDance.mid")
+    channel = midi.instruments[0]
+    #print(channel.notes)
+    markov.learn(channel)

@@ -29,9 +29,9 @@ def matrix2notes(m):
     return notes
 
 class Measure:
-    def __init__(self, notes=[], beats=[], velocity=100, is_drum=false):
+    def __init__(self, notes=[], beats=[], velocity=100, is_drum=False):
         self.length = len(notes)
-        if not notes[0].isnumeric():
+        if type(notes[0]) != int:
             self.notes = [pretty_midi.note_name_to_number(note) for note in notes]
         else: 
             self.notes = notes    # ex. [60, 63, 67, 69, 63, 60]
@@ -67,10 +67,10 @@ class Measure:
     
     def to_midi_notes(self, bpm=120, velocity=-1):        #returns note list appendable for midi instruments
         if velocity == -1: velocity = self.velocity
-        rate = 1./bpm
+        rate = 60./bpm
         starts = []
-        ends = [self.beats*rate for beat in beats]
+        ends = [beat*rate for beat in self.beats]
         starts = [0] + ends[:-1]
-        notes = [pretty_midi.Note(start=starts[i], end=ends[i], pitch=self.notes[i], velocity=velocity)]
+        notes = [pretty_midi.Note(start=starts[i], end=ends[i], pitch=self.notes[i], velocity=velocity) for i in range(self.length)]
         return notes
   

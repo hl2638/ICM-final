@@ -29,48 +29,61 @@ def matrix2notes(m):
     return notes
 
 class Measure:
-    def __init__(self, notes=[], beats=[], velocity=100, is_drum=False):
+    
+    blocks = 48
+    
+    def __init__(self, notes=[], starts=[], durations=[], velocities=[], time=3, autofill=False):
+        self.time = time
         self.length = len(notes)
+        self.velocities = velocities
+        if len(self.velocities) == 0: self.velocities = [101 for i in range(self.length)] 
+        
         if type(notes[0]) != int:
             self.notes = [pretty_midi.note_name_to_number(note) for note in notes]
         else: 
             self.notes = notes    # ex. [60, 63, 67, 69, 63, 60]
-        self.beats = beats    # ex. [1, 1, 1./2, 1./2, 1]
-        self.velocity = velocity
-    
-    
-    def extend_measure(self, other, velocity=-1):
-        self.length += other.get_length()
-        self.notes += other.notes
-        self.bats += other.beats
-        if velocity != -1:     # default: do not change velocity
-            self.velocity = velocity
-    
-    def set_velocity(self, velocity):
-        self.velocity = velocity
-    
+            
+        self.starts = starts      #ex. [5, 8, 12, 20]
+        
+        if not autofill:
+            self.durations = durations    # ex. [1, 1, 1./2, 1./2, 1]
+        else:
+            self.durations = [self.starts[i+1]-self.starts[i] for i in range(len(self.starts)-1)]+[Measure.blocks-self.starts[-1]]
+        
+        if len(self.starts) == 0:
+            self.starts = [0]
+            for i in range(self.length-1):
+                self.starts.append(self.starts[i]+self.durations[i])
+        
+    def set_starts(self, starts):
+        self.starts = starts        
+    def set_durations(self, durations):
+        self.durations = durations    
+    def set_velocities(self, velocities):
+        self.velocities = velocities
+    def get_starts(self):
+        return self.starts
     def get_notes(self):
         return [pretty_midi.note_number_to_name(note) for note in self.notes]
-    
-    def get_beats(self):
-        return self.beats
-    
+    def get_durations(self):
+        return self.durations
     def get_length(self):
         return self.length
-    
-    def get_velocity(self):
-        return self.velocity
-    
+    def get_time(self):
+        return self.time
+    def get_velocities(self):
+        return self.velocities
     
     def __str__(self):
-        return str(self.get_notes())+'\n'+str(self.get_beats())
+        return str(self.get_notes())+'\n'+str(self.get_starts())+'\n'+str(self.get_durations())+'\n'+str(self.get_velocities())
     
-    def to_midi_notes(self, bpm=120, velocity=-1):        #returns note list appendable for midi instruments
-        if velocity == -1: velocity = self.velocity
-        rate = 60./bpm
-        starts = []
-        ends = [beat*rate for beat in self.beats]
-        starts = [0] + ends[:-1]
-        notes = [pretty_midi.Note(start=starts[i], end=ends[i], pitch=self.notes[i], velocity=velocity) for i in range(self.length)]
+    def to_midi_notes(self):        #returns note list appendable for midi instruments
+        print(self.length)
+        print(self)
+        spb = self.time/float(Measure.blocks)    # seconds per block
+        starts = [start*spb for start in self.starts]
+        ends = [(self.starts[i]+self.durations[i])*spb for i in range(self.length)]
+        notes = [pretty_midi.Note(start=starts[i], end=ends[i], pitch=self.notes[i], velocity=self.velocities[i]) for i in range(self.length)]
         return notes
   
+    

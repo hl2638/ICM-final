@@ -11,6 +11,7 @@ import pickle
 import pretty_midi
 import random
 
-midi = pretty_midi.PrettyMIDI('FlowerDance.mid')
-midi.instruments.pop(1)
-midi.write('FlowerDance_main.mid')
+midi = pretty_midi.PrettyMIDI('Summer.mid')
+print(midi.instruments)
+midi.instruments = [midi.instruments[1]]
+midi.write("Summer_accompany.mid")

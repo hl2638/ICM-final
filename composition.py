@@ -16,7 +16,7 @@ def random_beats(n):
 #    print("random_beats " + str(n))
     random.seed()
     beat_choices = [1., 1./2, 1./4, 1./8]
-    prob = [1, 1.25, 1.5, 1.5]
+    prob = [0.25, 0.5, 0.5, 0.25]
     population = []
     weights = []
     for i in range(4):
@@ -28,24 +28,26 @@ def random_beats(n):
     if n-beat[0] <= 0: return beat
     return beat+random_beats(n-beat[0])
 
-def predefined_measure_generator(markov):
+def predefined_unit_generator(markov, beats, time):
     if markov == None: markov = load_markov("default_markov")   #TODO: still need to develop a default markov chain
     if type(markov) == str: markov = load_markov(markov)
     #otherwise markov is a markov Class
-    created_measure = markov.create_notes(length=15)
-    beats = random_beats(4.0)
-    durations = [int(beat*measure.Measure.blocks/4) for beat in beats]
+    created_measure = markov.create_notes(length=30)
+    beats = random_beats(beats)
+    durations = [int(beat*measure.Unit.lpq) for beat in beats]
+#    print("total beats = %d" % sum(beats))
 #    beats = [beat*rate for beat in beats]
 #    print(beats)
     notes = [note.pitch for note in created_measure[:len(beats)]]
-    generated_measure = measure.Measure(notes, durations=durations)
-    return generated_measure
+    generated_unit = measure.Unit(notes, durations=durations, time=time)
+    return generated_unit
+
     
-def save_measure(measure, filename):
+def save_unit(measure, filename):
     fileObject = open(filename, 'wb')
     pickle.dump(measure, fileObject)
 
-def load_measure(filename):
+def load_unit(filename):
     fileObject = open(filename, 'rb')
     measure = pickle.load(fileObject)
     return measure
@@ -61,12 +63,11 @@ def composition_rule1(measure):
 
 if __name__ == "__main__":
     
-    markov = markov.Markov_chain()
-    markov_learn(markov, "FlowerDance.mid")
-    testmidi = pretty_midi.PrettyMIDI()
+    markov = load_markov("calm_piano_main.markov")
+    testmidi = pretty_midi.PrettyMIDI ()
     testmidi.instruments.append(pretty_midi.Instrument(0))
 #    print(type(predefined_measure_generator(markov)))
-    generated_measure = predefined_measure_generator(markov).to_midi_notes()
-    generated_measure = load_measure("generated_measure02.mes")
-    testmidi.instruments[0].notes = generated_measure
-    testmidi.write("generated_measure.mid")
+    generated_unit = predefined_unit_generator(markov, 4, 2).to_midi_notes()
+#    generated_measure = load_measure("generated_measure02.mes")
+    testmidi.instruments[0].notes = generated_unit
+    testmidi.write("generated_unit.mid")

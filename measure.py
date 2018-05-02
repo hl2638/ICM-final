@@ -28,11 +28,11 @@ def matrix2notes(m):
                             for i in range(size(m,0))]
     return notes
 
-class Measure:
+class Unit:
     
-    blocks = 48
+    lpq = 24 # a quarternote has a length 24
     
-    def __init__(self, notes=[], starts=[], durations=[], velocities=[], time=3, autofill=False):
+    def __init__(self, notes=[], starts=[], durations=[], velocities=[], time=12):
         self.time = time
         self.length = len(notes)
         self.velocities = velocities
@@ -44,17 +44,27 @@ class Measure:
             self.notes = notes    # ex. [60, 63, 67, 69, 63, 60]
             
         self.starts = starts      #ex. [5, 8, 12, 20]
-        
-        if not autofill:
-            self.durations = durations    # ex. [1, 1, 1./2, 1./2, 1]
-        else:
-            self.durations = [self.starts[i+1]-self.starts[i] for i in range(len(self.starts)-1)]+[Measure.blocks-self.starts[-1]]
+        self.durations = durations    # ex. [12, 12, 6, 6, 12]
         
         if len(self.starts) == 0:
             self.starts = [0]
             for i in range(self.length-1):
                 self.starts.append(self.starts[i]+self.durations[i])
+                
+        self.num_of_beats = int(sum(self.durations)/Unit.lpq)
         
+        # notes, time, length, velocities, starts, durations, num_of_beats
+        
+    def extend_unit(self, other):
+        self.notes += other.notes
+        self.time += other.get_time()
+        self.num_of_beats += other.num_of_beats
+        self.length += other.get_length()
+        end = self.starts[-1]+self.durations[-1]
+        self.starts += [start+end for start in other.starts]
+        self.durations += other.durations
+        self.velocities += other.velocities
+    
     def set_starts(self, starts):
         self.starts = starts        
     def set_durations(self, durations):
@@ -77,13 +87,20 @@ class Measure:
     def __str__(self):
         return str(self.get_notes())+'\n'+str(self.get_starts())+'\n'+str(self.get_durations())+'\n'+str(self.get_velocities())
     
-    def to_midi_notes(self):        #returns note list appendable for midi instruments
+    def to_midi_notes(self, start_time=0):        #returns note list appendable for midi instruments
+        print(self.time)
         print(self.length)
+        print(self.num_of_beats)
         print(self)
-        spb = self.time/float(Measure.blocks)    # seconds per block
-        starts = [start*spb for start in self.starts]
-        ends = [(self.starts[i]+self.durations[i])*spb for i in range(self.length)]
+        spl = self.time/float(Unit.lpq*self.num_of_beats)    # seconds per 1-length
+        print("spl = %f" % spl)
+        starts = [start*spl+start_time for start in self.starts]
+        ends = [(self.starts[i]+self.durations[i])*spl for i in range(self.length)]
         notes = [pretty_midi.Note(start=starts[i], end=ends[i], pitch=self.notes[i], velocity=self.velocities[i]) for i in range(self.length)]
         return notes
   
-    
+        
+        
+        
+        
+        

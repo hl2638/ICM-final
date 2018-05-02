@@ -144,3 +144,4 @@ if __name__ == "__main__":
     channel = midi.instruments[0]
     #print(channel.notes)
     markov.learn(channel)
+    #changed markov

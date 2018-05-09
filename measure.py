@@ -65,6 +65,23 @@ class Unit:
         self.durations += other.durations
         self.velocities += other.velocities
     
+#    def copy(self):
+#        return cp.deepcopy(self)
+    
+    def wipe_end(self):
+        """self.notes.append(67)
+        if duration > self.durations[-1]: duration = self.durations[-1]
+        self.durations[-1] -= duration
+        self.starts.append(self.starts[-1]+self.durations[-1])
+        self.durations.append(duration)
+        self.velocities.append(0)
+        self.length += 1"""
+        self.notes[-1] = 0
+        self.velocities[-1] = 0
+        if self.durations[-1] <= 1./4*Unit.lpq:
+            self.notes[-2] = 0
+            self.velocities[-2] = 0
+    
     def set_starts(self, starts):
         self.starts = starts        
     def set_durations(self, durations):
@@ -73,8 +90,11 @@ class Unit:
         self.velocities = velocities
     def get_starts(self):
         return self.starts
+    def set_notes(self, notes):
+        self.notes = notes
     def get_notes(self):
-        return [pretty_midi.note_number_to_name(note) for note in self.notes]
+#        return [pretty_midi.note_number_to_name(note) for note in self.notes]
+        return self.notes
     def get_durations(self):
         return self.durations
     def get_length(self):

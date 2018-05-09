@@ -92,6 +92,8 @@ class Unit:
         return self.starts
     def set_notes(self, notes):
         self.notes = notes
+    def set_time(self, time):
+        self.time = time
     def get_notes(self):
 #        return [pretty_midi.note_number_to_name(note) for note in self.notes]
         return self.notes

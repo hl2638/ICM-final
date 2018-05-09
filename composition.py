@@ -18,7 +18,7 @@ MED = 1
 SLOW = 2
 VERY_SLOW = 3
 
-def random_beats(n, tempo):
+def random_beats(n, tempo=1):
 #    print("random_beats " + str(n))
     random.seed()
     beat_choices = [1., 1./2, 1./4, 1./8]
@@ -39,7 +39,7 @@ def random_beats(n, tempo):
     if n-beat[0] <= 0: return beat
     return beat+random_beats(n-beat[0], tempo)
 
-def predefined_unit_generator(markov, beats, time, tempo):
+def predefined_unit_generator(markov, beats, time, tempo=1):
     if markov == None: markov = load_markov("default_markov")   #TODO: still need to develop a default markov chain
     if type(markov) == str: markov = load_markov(markov)
     #otherwise markov is a markov Class
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     starts = [start*measure.Unit.lpq for start in starts]
     durs = [dur*measure.Unit.lpq for dur in durs]
     generated_drums = manual_generate_drum(starts, durs, velos, notes=notes)
-#    generated_drums = load_unit("drum_fast3.mes")
+    generated_drums = load_unit("drum_fast2.mes")
     testmidi.instruments[0].notes = generated_drums.to_midi_notes() 
-    testmidi.write("generated_drums_fast4.mid")
+    testmidi.write("generated_drums_fast2.mid")
     

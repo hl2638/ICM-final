@@ -82,6 +82,15 @@ class Unit:
             self.notes[-2] = 0
             self.velocities[-2] = 0
     
+    def fade_out(self):
+        ret_unit = cp.deepcopy(self)
+        step = (2./3)/self.length
+        rate = 1
+        for i in range(self.length):
+            rate -= step
+            ret_unit.velocities[i] = int(ret_unit.velocities[i]*(rate-step))
+        return ret_unit
+    
     def set_starts(self, starts):
         self.starts = starts        
     def set_durations(self, durations):

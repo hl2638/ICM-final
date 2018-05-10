@@ -47,7 +47,7 @@ if __name__ == "__main__":
     markov = markov.Markov_chain()
 #    midilist = ["Sunburst_piano.mid","Life_piano.mid","FlowerDance_main.mid","LuvLetter_main.mid"]
 #    midilist = ["Ralph Cowell EDM Essential Melodies MIDI Vol. 1 - " +str(i)+ ".mid" for i in range(1,11)]
-    midilist = ["Summer_main.mid", "FlowerDance_main.mid", "LuvLetter_main.mid"]
+    midilist = ["akame_accompany.mid", "jiyuu_accompany.mid", "shinzou_accompany.mid", "unravel_accompany.mid"]
     for filename in midilist:
         midi = pretty_midi.PrettyMIDI(filename)
         channel = midi.instruments[0]
@@ -57,5 +57,5 @@ if __name__ == "__main__":
     creation = pretty_midi.PrettyMIDI()
     creation.instruments.append(pretty_midi.Instrument(102-102))
     creation.instruments[0].notes = markov.create_notes(length=50)
-    creation.write("testpianomain.mid")
-    save_markov(markov, "calm_piano_main.markov")
+    creation.write("test_hype_accompany.mid")
+    save_markov(markov, "hype_piano_accompany.markov")

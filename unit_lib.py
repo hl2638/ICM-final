@@ -15,8 +15,6 @@ import composition
 
 
 class Unit_lib:
-    FAST = 0
-    SLOW = 1
     def __init__(self, instrument=0):
         self.instrument = instrument
         self.num_of_types = 0
@@ -32,8 +30,8 @@ class Unit_lib:
             self.num_of_types += 1
             self.types.append(tag)
         else:
-            if unit not in self.units[tag]:
-                self.units[tag].append((unit, name))
+#            if unit not in self.units[tag] and name not in self.units[tag]:
+            self.units[tag].append((unit, name))
 #        print("Now the list looks like:", self.units[tag])
     def add_units(self, unit_list):
         for unit, tag, name in unit_list:
@@ -51,6 +49,15 @@ class Unit_lib:
                 if self.units[tag][i][1] == unit_name:
                     self.units[tag].pop(i)
                     return
+    def delete_tag(self, tag):
+        self.units[tag] = None
+        self.types.remove(tag)
+        
+    def get_unit(self, tag=None):
+        if tag == None:
+            random.seed()
+            tag = random.choice(self.types)
+        return random.choice(self.units[tag])[0]
                 
     def __str__(self):
         str_ret = dict()
@@ -76,12 +83,14 @@ def load_lib(filename):
 
 if __name__ == "__main__":
     lib_dict = dict()           #key: instrument no.  value: corresponding unit library
-    drums_lib = Unit_lib(15)
+#    drums_lib = Unit_lib(15)
+    drums_lib = load_lib("drums_lib.lib")
     lib_dict[15] = drums_lib
     #what we want to add to the lib this time
     # unit, tag, unit_name
-    unit_list = [(load_unit("drum_fast%d.mes" % i), Unit_lib.FAST, "drum_fast%d.mes" % i) for i in range(1,5)]              
+#    unit_list = [(load_unit("drum_slow%d.mes" % i), "SLOW", "drum_slow%d.mes" % i) for i in range(1,5)] + [(load_unit("drum_fast%d.mes" % i), "FAST", "drum_fast%d.mes" % i) for i in range(1,5)]             
     drums_lib.add_units(unit_list)
     print(drums_lib)
     
+#    save_lib(drums_lib, "drums_lib.lib")
     

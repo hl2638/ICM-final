@@ -21,14 +21,9 @@ import matplotlib.style as ms   # plotting style
 import numpy as np              # numpy numerical functions
 ms.use('seaborn-muted')         # fancy plot designs
 
-#midi = pretty_midi.PrettyMIDI('Life_drums.mid')
+midi = pretty_midi.PrettyMIDI('Shingeki no Koyojin Jiyuu no Tsubasa.mid')
+print(midi.instruments)
+#midi.instruments[0].program = 13
 #print(midi.instruments)
-##midi.instruments[0].program = 13
-#print(midi.instruments)
-#for note in midi.instruments[0].notes[:20]:
-#    print(note)
-##midi.write("Life_drums1.mid")
-y, sr = librosa.load("C:\CloudMusic\Tobu - Life.mp3", sr=44100)
-tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
-print(tempo)
-print(beats)
+midi.instruments = [midi.instruments[0]]
+midi.write("jiyuu_main.mid")

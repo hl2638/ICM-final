@@ -14,6 +14,7 @@ import IPython.display     # IPython's display module (for in-line audio)
 import matplotlib.pyplot as plt # matplotlib plotting functions
 import matplotlib.style as ms   # plotting style
 import numpy as np              # numpy numerical functions
+import random
 
 
 """
@@ -111,7 +112,7 @@ class Markov_chain:
         if start_note == -1: 
             start_note = random.choice(list(self.notes))
             while(self.note_next_total[start_note] == 0):
-                start_note = random.choice(list(self.notes))
+                start_note = random.choice(list(self.notes))         
                 
         if start_dur == -1: 
             start_dur = random.choice(list(self.durations))
@@ -137,6 +138,50 @@ class Markov_chain:
                 
         notes = matrix2notes(note_matrix)
         return notes
+    
+    def create_notes_with_sequence(self, notes, length=100,velocity=101):
+        #    returns a pretty_midi.PrettyMIDI()
+        random.seed()
+        start_note_ref = notes[-1]
+        start_note = start_note_ref
+        min_error = 100
+        for note in self.notes:
+            if self.note_next_total[note] != 0 and abs(note-start_note_ref) < min_error:
+                min_error = abs(note-start_note_ref)
+                start_note = note 
+            start_dur = random.choice(list(self.durations))
+            while(self.dur_next_total[start_dur] == 0):
+                start_dur = random.choice(list(self.durations))
+        note_matrix = matrix(zeros((length, 4)))
+        note_matrix[0,:] = matrix([0, start_dur, start_note, velocity])
+        for i in range(1, length):
+            prev_note = int(note_matrix[i-1, 2])
+            population = self.next_notes[prev_note]
+            weights = [self.note_next[(prev_note, note)] for note in population]
+#            print(population)
+#            print(weights)
+            note = random.choices(population, weights)[0]
+
+            prev_dur = round(note_matrix[i-1, 1]-note_matrix[i-1, 0], 4)
+            population = self.next_durs[prev_dur]
+            weights = [self.dur_next[(prev_dur, dur)] for dur in population]
+            dur = random.choices(population, weights)[0]
+            
+            last_end = note_matrix[i-1,1]
+            if i < len(notes):
+                note_matrix[i,:] = matrix([last_end, last_end+dur, notes[i], velocity])
+            else:
+                note_matrix[i,:] = matrix([last_end, last_end+dur, note, velocity])
+                
+        notes = matrix2notes(note_matrix)
+        return notes
+    
+    def next_note(self, this_note):
+        population = self.next_notes[this_note]
+        weights = [self.note_next[(this_note, note)] for note in population]
+        note = random.choices(population, weights)[0]
+        return note
+
 
 if __name__ == "__main__":
     markov = Markov_chain()

@@ -9,6 +9,7 @@ import measure
 import markov
 import copy
 import pickle
+import unit_lib
 import pretty_midi
 import random
 from markov_learn_and_create import *
@@ -22,7 +23,7 @@ def random_beats(n, tempo=1):
 #    print("random_beats " + str(n))
     random.seed()
     beat_choices = [1., 1./2, 1./4, 1./8]
-    fast_prob = [0.25, 0.5, 0.75, 0.25]
+    fast_prob = [0.1, 0.5, 0.75, 0.25]
     med_prob = [0.25,0.75,0.5,0]
     slow_prob = [1.5,1.0,0.25,0]
     very_slow_prob = [2.0,1.0,0,0]
@@ -63,10 +64,11 @@ def load_unit(filename):
     measure = pickle.load(fileObject)
     return measure
 
-def variation_piano(unit):
+def variation_piano(unit, markov):
     new_unit = copy.deepcopy(unit)
     new_notes = new_unit.get_notes()
-    times = random.choice([1,2])
+#    times = random.choice([1,2])
+    times = random.choice([2,3])
     for i in range(times):
         idx = random.choice(range(len(new_notes) ))
         while(new_notes[idx] == 0): idx = random.choice(range(len(new_notes) ))
@@ -74,18 +76,18 @@ def variation_piano(unit):
         avg = sum(new_notes)
         co = random.choice([1,-1])
         amp = random.choice(range(4,8))
-        for i in range(len(new_notes)):
-            if new_notes[i] == pitch: new_notes[i] += amp*co
+        for i in range(1, len(new_notes)):
+            if new_notes[i] == pitch: new_notes[i] = markov.next_note(new_notes[i-1])
         new_unit.set_notes(new_notes)
 #    print(unit)
 #    print(new_unit)
     return new_unit
 
-def composition_rule_piano(unit):
+def composition_rule_piano(unit, markov):
     unit.wipe_end()
     last_variation = copy.deepcopy(unit)
     for i in range(3):
-        last_variation = (variation_piano(last_variation))
+        last_variation = (variation_piano(last_variation, markov))
         unit.extend_unit(last_variation)
     return unit
     
@@ -102,22 +104,32 @@ def manual_generate_drum(starts, durs, velos, notes=None,time=3):
 
 if __name__ == "__main__":
     
-#    markov = load_markov("calm_piano_main.markov")
+    myMarkov = load_markov("hype_piano_accompany.markov")
     testmidi = pretty_midi.PrettyMIDI()
+    testmidi.instruments.append(pretty_midi.Instrument(0))
     testmidi.instruments.append(pretty_midi.Instrument(16, is_drum=True))
-#    generated_unit = predefined_unit_generator(markov, 4, 3, VERY_SLOW)
-#    generated_unit = composition_rule_piano(generated_unit)
+    generated_unit = predefined_unit_generator(myMarkov, 4, 3, FAST)
+#    generated_unit = composition_rule_piano(generated_unit, myMarkov)
 ##    generated_unit = load_unit("measure01.mes")
-#    testmidi.instruments[0].notes = generated_unit.to_midi_notes() 
-#    testmidi.write("generated_unit_veryslow.mid")
-    notes = [37,37,37,40,39,37]*2
-    starts = [0, 0.5, 1.5, 2, 3, 3.5, 4, 4.5, 5.5, 6, 7, 7.5]
-    durs =   [0.5, 1, 0.5, 1,0.5,0.5]*2
-    velos = [101,101,101,101,101,0]*2
-    starts = [start*measure.Unit.lpq for start in starts]
-    durs = [dur*measure.Unit.lpq for dur in durs]
-    generated_drums = manual_generate_drum(starts, durs, velos, notes=notes)
-    generated_drums = load_unit("drum_fast2.mes")
-    testmidi.instruments[0].notes = generated_drums.to_midi_notes() 
-    testmidi.write("generated_drums_fast2.mid")
+    testmidi.instruments[0].notes = generated_unit.to_midi_notes() 
+#    drums_lib = unit_lib.load_lib("drums_lib.lib")
+#    generated_unit = drums_lib.get_unit('FAST')
+#    testmidi.instruments[1].notes = generated_unit.to_midi_notes() 
+    testmidi.write("generated_unit_fast.mid")
     
+#    notes = [37,37,37,37,37]
+#    starts = [0, 0.5, 1, 2, 3]
+#    durs =   [0.5, 0.5, 1, 1, 1]
+#    velos = [101, 101, 0, 101, 101]
+#    starts = [start*measure.Unit.lpq for start in starts]
+#    durs = [dur*measure.Unit.lpq for dur in durs]
+#    generated_drums = manual_generate_drum(starts, durs, velos, notes=notes)
+##    generated_drums = load_unit("drum_slow3.mes")
+##    testmidi.instruments[0].notes = generated_drums.to_midi_notes() 
+##    testmidi.write("generated_drums_fast2.mid")
+#    
+#    drums_lib = unit_lib.load_lib("drums_lib.lib")
+#    unit = drums_lib.get_unit('SLOW')
+#    testmidi.instruments[0].notes = unit.to_midi_notes()
+#    testmidi.write("test_lib_slow.mid")
+#    

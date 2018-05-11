@@ -109,7 +109,7 @@ if __name__ == "__main__":
     testmidi.instruments.append(pretty_midi.Instrument(0))
     testmidi.instruments.append(pretty_midi.Instrument(16, is_drum=True))
     generated_unit = predefined_unit_generator(myMarkov, 4, 3, FAST)
-#    generated_unit = composition_rule_piano(generated_unit, myMarkov)
+    generated_unit = composition_rule_piano(generated_unit, myMarkov)
 ##    generated_unit = load_unit("measure01.mes")
     testmidi.instruments[0].notes = generated_unit.to_midi_notes() 
 #    drums_lib = unit_lib.load_lib("drums_lib.lib")
